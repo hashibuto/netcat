@@ -1,12 +1,19 @@
 use core::str;
-use std::{io::{self, Read, Write}, net::{TcpListener, TcpStream}};
+use std::{
+    io::{self, Read, Write},
+    net::{TcpListener, TcpStream},
+};
 
 use clap::Parser;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    #[arg(short = 'l', long = "listen", help = "start TCP listener instead of calling")]
+    #[arg(
+        short = 'l',
+        long = "listen",
+        help = "start TCP listener instead of calling"
+    )]
     listen: bool,
 
     // host address
@@ -23,18 +30,18 @@ fn read_loop(mut stream: TcpStream) {
         match stream.read(&mut buf) {
             Ok(n) => {
                 if n == 0 {
-                    break
+                    break;
                 }
                 let received = str::from_utf8(&buf[0..n]).unwrap();
                 print!("{}", received)
-            },
-            Err(err) => println!("error: {}", err)
+            }
+            Err(err) => println!("error: {}", err),
         }
     }
     println!("connection terminated!")
 }
 
-fn connect(host:String, port:u16) -> Result<(), std::io::Error> {
+fn connect(host: String, port: u16) -> Result<(), std::io::Error> {
     let dial_addr = format!("{}:{}", host, port);
     let mut stream = TcpStream::connect(&dial_addr)?;
     println!("connected to {}", dial_addr);
@@ -46,8 +53,8 @@ fn connect(host:String, port:u16) -> Result<(), std::io::Error> {
     }
 }
 
-fn listen(host:String, port:u16) -> Result<(), std::io::Error> {
-    let listen_address = format!("{address}:{port}", address=host, port=port);
+fn listen(host: String, port: u16) -> Result<(), std::io::Error> {
+    let listen_address = format!("{address}:{port}", address = host, port = port);
     println!("listening on {}", listen_address);
 
     let tcp_listener = match TcpListener::bind(&listen_address) {
@@ -61,11 +68,11 @@ fn listen(host:String, port:u16) -> Result<(), std::io::Error> {
             Err(err) => {
                 println!("error on incoming connection: {}", err);
                 continue;
-            },
+            }
         };
 
         read_loop(stream);
-        return Ok(())
+        return Ok(());
     }
 
     Ok(())
@@ -77,7 +84,7 @@ fn main() {
     if cli.listen {
         match listen(cli.host, cli.port) {
             Ok(()) => (),
-            Err(err) => println!("error setting up listener: {}", err)
+            Err(err) => println!("error setting up listener: {}", err),
         }
     } else {
         match connect(cli.host, cli.port) {
