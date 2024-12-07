@@ -1,5 +1,5 @@
 use core::str;
-use std::{io::Read, net::{TcpListener, TcpStream}};
+use std::{io::{self, Read, Write}, net::{TcpListener, TcpStream}};
 
 use clap::Parser;
 
@@ -34,6 +34,18 @@ fn read_loop(mut stream: TcpStream) {
     println!("connection terminated!")
 }
 
+fn connect(host:String, port:u16) -> Result<(), std::io::Error> {
+    let dial_addr = format!("{}:{}", host, port);
+    let mut stream = TcpStream::connect(&dial_addr)?;
+    println!("connected to {}", dial_addr);
+    loop {
+        let mut input = String::with_capacity(512);
+        io::stdin().read_line(&mut input)?;
+        let buf = input.as_bytes();
+        stream.write(buf)?;
+    }
+}
+
 fn listen(host:String, port:u16) -> Result<(), std::io::Error> {
     let listen_address = format!("{address}:{port}", address=host, port=port);
     println!("listening on {}", listen_address);
@@ -66,6 +78,11 @@ fn main() {
         match listen(cli.host, cli.port) {
             Ok(()) => (),
             Err(err) => println!("error setting up listener: {}", err)
+        }
+    } else {
+        match connect(cli.host, cli.port) {
+            Ok(()) => (),
+            Err(err) => println!("error: {}", err),
         }
     }
 }
